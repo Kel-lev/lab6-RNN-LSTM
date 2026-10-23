@@ -49,6 +49,7 @@ El tensor `y` tiene forma `[590, 1]` porque contiene 590 valores objetivo, uno p
 
 Esto corresponde a un enfoque **Many-to-One**: la red utiliza una secuencia de 10 pasos temporales para generar una única predicción.
 
+**RESULTADO**
 ![r1](r1.png)
 
 ---
@@ -95,6 +96,9 @@ H = 64: \quad 64^2 + 4(64) + 1 = 4096 + 256 + 1 = 4353
 
 **Conclusión:** para predecir una serie senoidal, `hidden_size = 16` es suficiente, ya que ofrece buenos resultados con muchos menos parámetros que `hidden_size = 64`.
 
+**RESULTADO:**
+![r2](r2.png)
+
 ---
 
 ## Parte 3: Análisis de Ventanas Temporales
@@ -115,6 +119,9 @@ Esto ocurre porque una ventana más larga proporciona más información temporal
 
 **Conclusión:** aumentar `SEQ_LEN` de 10 a 50 mejoró la convergencia y redujo la pérdida final. No se observaron señales importantes de inestabilidad ni efectos evidentes del problema del gradiente desvaneciente.
 
+**RESULTADO:**
+![r3](r3.png)
+
 ---
 
 ## Parte 4: Reto Avanzado, Comparación RNN vs LSTM
@@ -122,6 +129,9 @@ Esto ocurre porque una ventana más larga proporciona más información temporal
 Se entrenaron ambos modelos bajo las mismas condiciones: `SEQ_LEN = 50`, `hidden_size = 16`, `lr = 0.01`, 50 épocas y `seed = 42`.
 
 ### 1. Comparativa de Métricas
+
+**RESULTADO:**
+![r4](r4.png)
 
 | Modelo | Parámetros entrenables | Loss final |
 |--------|------------------------|------------|
