@@ -1,23 +1,154 @@
-# Lab 06 — RNN y LSTM en PyTorch
+# Lab 06 — Redes Neuronales Recurrentes (RNN y LSTM) en PyTorch
 
-Implementación, entrenamiento y análisis de redes recurrentes (RNN simple y LSTM)
-para predicción de series temporales, desarrollado como parte de la Guía de
-Práctica 06 del curso de Inteligencia Artificial.
+**Universidad Andina del Cusco**  
+Facultad de Ingeniería y Arquitectura  
+Escuela Profesional de Ingeniería de Sistemas
 
-## Contenido
-- `practica_rnn.py` — RNN simple con inspección de tensores, conteo de
-  parámetros y visualización de pérdida/predicción.
+| | |
+|---|---|
+| **Asignatura** | Inteligencia Artificial |
+| **Docente** | Lazo Mamani, Juan Carlos |
+| **Estudiantes** | Delgado Ccorihuaman, Hamlet Nayeli <br> Leva Ayte, Kelma Ivonne |
+| **Ciclo** | 2026 |
 
-## Estado
-- [x] Entorno virtual + PyTorch instalado
-- [x] RNN simple implementada y funcionando
-- [x] Actividades 1, 2 y 3 completadas
-- [ ] LSTM + comparación (pendiente)
-- [ ] README con análisis crítico completo (pendiente)
+---
 
-## Ejecución
-```bash
+## 📋 Descripción
+
+Implementación, entrenamiento y análisis comparativo de redes neuronales recurrentes (**RNN simple** y **LSTM**) en PyTorch para la predicción de series temporales sintéticas (onda senoidal). Se abordan los conceptos de tensores 3D, impacto de hiperparámetros, longitud de secuencia y el problema del gradiente desvaneciente, además del versionamiento del proyecto con Git y GitHub.
+
+## 📁 Estructura del repositorio
+lab6-RNN-LSTM/
+├── practica_rnn.py
+├── comparacion_rnn_lstm.py
+├── comparacion_rnn_lstm.png
+├── README.md
+└── .gitignore
+
+text
+
+---
+
+## 4. Actividades Prácticas sobre el Código
+
+### 4.1. Inspección de Dimensiones (Tensores 3D)
+
+Se añadieron instrucciones `print(X.shape)` y `print(y.shape)` antes de iniciar el entrenamiento para inspeccionar las dimensiones de los tensores.
+
+**Resultados obtenidos:**
+X.shape = torch.Size([590, 10, 1])
+y.shape = torch.Size([590, 1])
+
+text
+
+**¿Qué representa exactamente cada eje?**
+
+El tensor `X` tiene tres dimensiones `[N, L, F]` porque `nn.RNN(..., batch_first=True)` espera esta estructura. Para el caso con `n_puntos = 600` y `SEQ_LEN = 10`:
+
+| Eje | Nombre | Valor | Significado |
+|---|---|---|---|
+| **0** | **Batch Size (N)** | 590 | Número de ventanas deslizantes generadas: `n_puntos − seq_len = 600 − 10`. Representa la cantidad de ejemplos disponibles para el entrenamiento. |
+| **1** | **Sequence Length (L)** | 10 | Cantidad de pasos temporales que la RNN recorre secuencialmente en cada ventana. |
+| **2** | **Features (F)** | 1 | Cantidad de variables registradas en cada paso temporal. En este caso, se utiliza únicamente el valor de la señal senoidal. |
+
+El tensor `y` tiene dimensiones `[590, 1]` porque contiene 590 valores objetivo, uno por cada ventana de entrada. Cada valor corresponde al siguiente valor de la señal senoidal.
+
+A diferencia de `X`, que tiene tres dimensiones porque incluye muestras, pasos temporales y características, `y` solo necesita representar las muestras y sus respectivos valores objetivo.
+
+Esto corresponde a un enfoque **Many-to-One**: la red utiliza una secuencia de 10 pasos temporales para generar una única predicción.
+
+---
+
+### 4.2. Modificación de Hiperparámetros
+
+Se modificó el parámetro `hidden_size` de 16 a 64 para observar su impacto en el número de parámetros entrenables del modelo, calculados mediante:
+
+```python
+sum(p.numel() for p in model.parameters())
+Fórmulas para calcular los parámetros:
+
+RNN: H² + 3H
+
+Capa de salida (FC): H + 1
+
+Total: H² + 4H + 1
+
+Donde H representa el valor de hidden_size.
+
+Verificación de los cálculos:
+
+Para hidden_size = 16: 16² + 4(16) + 1 = 321
+
+Para hidden_size = 64: 64² + 4(64) + 1 = 4353
+
+Resultados obtenidos:
+
+Configuración	hidden_size	Parámetros entrenables	Loss final (época 50)
+Baseline	16	321	0.000892
+Modificada	64	4 353	0.000756
+Al cambiar el parámetro hidden_size de 16 a 64, el número de parámetros entrenables aumentó de 321 a 4 353, es decir, aproximadamente 13.6 veces más.
+
+Esto ocurre porque la RNN contiene una matriz de pesos recurrentes cuyo tamaño crece cuadráticamente al aumentar hidden_size.
+
+Aunque la pérdida final mejoró ligeramente, pasando de 0.000892 a 0.000756, la diferencia fue pequeña en comparación con el aumento de parámetros.
+
+Conclusión: para esta tarea de predecir una serie senoidal, hidden_size = 16 es suficiente, ya que ofrece buenos resultados con muchos menos parámetros que hidden_size = 64.
+
+4.3. Análisis de Ventanas Temporales
+Se incrementó la longitud de la secuencia (SEQ_LEN) de 10 a 50 pasos temporales para analizar su impacto en la estabilidad del entrenamiento y en la pérdida (Loss).
+
+Resultados obtenidos:
+
+Configuración	SEQ_LEN	Loss época 10	Loss época 30	Loss final (época 50)
+Baseline	10	0.105862	0.007829	0.000892
+Ventana larga	50	0.050542	0.002987	0.000397
+Al aumentar SEQ_LEN de 10 a 50 pasos temporales, el entrenamiento se volvió más estable y la pérdida disminuyó más rápidamente. Con SEQ_LEN = 10, la pérdida final fue de 0.000892, mientras que con SEQ_LEN = 50 bajó a 0.000397, mostrando una mejora en el resultado final.
+
+Esto ocurre porque una ventana más larga proporciona más información temporal para realizar las predicciones. En este experimento, la serie senoidal es relativamente sencilla, por lo que la RNN pudo aprovechar ese contexto adicional sin presentar problemas importantes de estabilidad.
+
+Conclusión: aumentar SEQ_LEN de 10 a 50 mejoró la convergencia y redujo la pérdida final. En este caso, no se observaron señales importantes de inestabilidad ni efectos evidentes del problema del gradiente desvaneciente.
+
+5. Reto Avanzado: Incorporación de un Modelo Más Complejo (LSTM)
+Se entrenaron ambos modelos bajo las mismas condiciones: SEQ_LEN = 50, hidden_size = 16, lr = 0.01, 50 épocas y seed = 42.
+
+Resultados obtenidos:
+
+Modelo	Parámetros entrenables	Loss final
+RNN simple	321	0.000668 🏆
+LSTM	1 233	0.001182
+La RNN simple logró ajustarse mejor a la serie temporal, obteniendo una pérdida final de 0.000668, frente a 0.001182 de la LSTM.
+
+La RNN presentó un descenso más rápido de la pérdida, aunque con algunas oscilaciones durante el entrenamiento. En cambio, la LSTM mostró una convergencia más suave y estable, pero terminó con una pérdida mayor.
+
+En cuanto a los parámetros entrenables, la RNN tiene 321, mientras que la LSTM tiene 1 233, debido a sus cuatro compuertas internas: olvido, entrada, salida y candidata. Estas compuertas permiten a la LSTM gestionar mejor la información a largo plazo.
+
+📊 Gráfica comparativa
+https://comparacion_rnn_lstm.png/
+
+Conclusión: en este experimento, la RNN simple obtuvo mejores resultados y utilizó menos parámetros. Esto se debe a que la serie senoidal es relativamente sencilla y no requiere una memoria compleja a largo plazo. La LSTM podría ofrecer ventajas en tareas con dependencias temporales más complejas.
+
+🎯 Conclusión General
+Las actividades permitieron comprender la estructura de los tensores utilizados en una RNN, el efecto del parámetro hidden_size, la influencia de la longitud de las ventanas temporales y las diferencias entre una RNN simple y una LSTM.
+
+Los resultados muestran que aumentar el tamaño oculto incrementa considerablemente los parámetros entrenables, mientras que utilizar una secuencia más larga mejoró la pérdida final en este experimento. Asimismo, la RNN simple superó a la LSTM en la predicción de la serie senoidal evaluada, con menos parámetros y una pérdida final menor.
+
+En conclusión, la arquitectura y los hiperparámetros deben seleccionarse según la complejidad de la tarea. Una RNN simple puede ser suficiente para patrones periódicos sencillos, mientras que una LSTM puede resultar más útil cuando se necesita aprender dependencias temporales de largo plazo.
+
+⚙️ Ejecución
+bash
 python -m venv venv
 venv\Scripts\activate
 pip install torch matplotlib numpy
 python practica_rnn.py
+Para la comparación RNN vs LSTM:
+
+bash
+python comparacion_rnn_lstm.py
+🚀 Comandos Git utilizados
+bash
+git init
+git add .
+git commit -m "feat: implementacion inicial de RNN simple con inspeccion de tensores y visualizacion"
+git branch -M main
+git remote add origin https://github.com/Kel-lev/lab6-RNN-LSTM.git
+git push -u origin main
