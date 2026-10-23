@@ -49,7 +49,8 @@ El tensor `y` tiene forma `[590, 1]` porque contiene 590 valores objetivo, uno p
 
 Esto corresponde a un enfoque **Many-to-One**: la red utiliza una secuencia de 10 pasos temporales para generar una única predicción.
 
-**RESULTADO**
+**RESULTADO:**
+
 ![r1](r1.png)
 
 ---
@@ -130,7 +131,6 @@ Se entrenaron ambos modelos bajo las mismas condiciones: `SEQ_LEN = 50`, `hidden
 
 ### 1. Comparativa de Métricas
 
-**RESULTADO:**
 ![r4](r4.png)
 
 | Modelo | Parámetros entrenables | Loss final |
