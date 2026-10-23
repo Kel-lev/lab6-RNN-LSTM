@@ -1,6 +1,6 @@
 # Lab 06: Redes Neuronales Recurrentes (RNN y LSTM)
 
-**Universidad Andina del Cusco** 
+**Universidad Andina del Cusco**
 **Facultad:** Ingeniería y Arquitectura  
 **Escuela Profesional:** Ingeniería de Sistemas  
 **Curso:** Inteligencia Artificial  
