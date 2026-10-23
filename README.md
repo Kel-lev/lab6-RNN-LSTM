@@ -49,6 +49,8 @@ El tensor `y` tiene forma `[590, 1]` porque contiene 590 valores objetivo, uno p
 
 Esto corresponde a un enfoque **Many-to-One**: la red utiliza una secuencia de 10 pasos temporales para generar una única predicción.
 
+![r1](r1.png)
+
 ---
 
 ## Parte 2: Modificación de Hiperparámetros
